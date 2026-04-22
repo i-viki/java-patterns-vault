@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+             https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>dev.jayav</groupId>
+        <artifactId>java-patterns-vault</artifactId>
+        <version>1.0.0</version>
+    </parent>
+
+    <artifactId>01-strategy</artifactId>
+    <name>Strategy Pattern — Runtime-Swappable Business Rule Engines</name>
+    <description>
+        Demonstrates the Strategy Pattern using a real-world payment processing
+        system where payment methods (Credit Card, PayPal, Crypto) are swapped
+        at runtime without modifying the payment context.
+    </description>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>dev.jayav.patterns.strategy.StrategyDemo</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
