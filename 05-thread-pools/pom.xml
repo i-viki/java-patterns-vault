@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+             https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>dev.jayav</groupId>
+        <artifactId>java-patterns-vault</artifactId>
+        <version>1.0.0</version>
+    </parent>
+
+    <artifactId>05-thread-pools</artifactId>
+    <name>Thread Pools — Executor Configuration for CPU-Bound vs I/O-Bound Tasks</name>
+    <description>
+        Demonstrates optimal ExecutorService configuration for different workload types:
+        ForkJoinPool for CPU-bound image processing, cached thread pools for I/O-bound
+        database fetches, ScheduledExecutorService for periodic jobs, and Java 21
+        virtual threads for massive I/O concurrency.
+    </description>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>dev.jayav.patterns.threadpool.ThreadPoolDemo</mainClass>
+                        </manifest>
+                    </archive>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>
