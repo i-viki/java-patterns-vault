@@ -129,7 +129,7 @@ ScheduledExecutorService scheduler = ExecutorFactory.createScheduled("reports", 
 
 ## Author
 
-**Jaya V** — [GitHub](https://github.com/i-viki)
+**Jaya Vignesh (Jayavignesh)** — [Portfolio](https://jayavignesh.dev) · [GitHub](https://github.com/i-viki) · [LinkedIn](https://www.linkedin.com/in/jayavigneshj/)
 
 ## License
 
