@@ -21,7 +21,7 @@ An enterprise-grade, **modular architectural repository of reference design patt
 - **High-Throughput Observer Pattern (`03-observer`):**
   Thread-safe event propagation engine modeling live stock market ticks across portfolio trackers using `CopyOnWriteArrayList` and immutable event records.
 - **Fault-Tolerant Circuit Breaker (`04-circuit-breaker`):**
-  Finite state machine (`CLOSED` $\leftrightarrow$ `OPEN` $\leftrightarrow$ `HALF_OPEN`) with atomic state transitions (`AtomicReference`) isolating external API dependencies from cascading failures.
+  Finite state machine (`CLOSED` ↔ `OPEN` ↔ `HALF_OPEN`) with atomic state transitions (`AtomicReference`) isolating external API dependencies from cascading failures.
 - **Modern Concurrency & Workload Allocators (`05-thread-pools`):**
   Java 21 executor selection distinguishing between CPU-bound parallelism (`ForkJoinPool`) and high-concurrency I/O workloads (`Executors.newVirtualThreadPerTaskExecutor()`).
 
