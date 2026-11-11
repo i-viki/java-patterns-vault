@@ -60,6 +60,19 @@ flowchart TB
     MODULES --> JUNIT
 ```
 
+### Multi-Module Structure
+
+```text
+java-patterns-vault/
+├── pom.xml                    # Parent POM (Java 21, shared dependencies BOM)
+├── 01-strategy/               # Payment processing (Credit Card, PayPal, Crypto)
+├── 02-factory/                # Notifications (Email, SMS, Push)
+├── 03-observer/               # Stock market (Portfolio, AlertEngine, AuditLogger)
+├── 04-circuit-breaker/        # External API fault isolation with FSM
+├── 05-thread-pools/           # Executor configuration by workload type
+└── docs/                      # Architecture diagrams and pattern overview
+```
+
 ---
 
 ## Pattern Taxonomy & Workload Model Invariants
@@ -68,13 +81,66 @@ The vault categorizes software engineering patterns into domain-specific executi
 
 $$N_{\text{threads}}^{\text{CPU}} = N_{\text{cores}}, \quad N_{\text{threads}}^{\text{IO}} = \infty \text{ (Virtual Thread Fibers)}$$
 
-| Module | Design Pattern | Production Problem Solved | Core Java 21 Primitives |
-| :--- | :--- | :--- | :--- |
-| **`01-strategy`** | Behavioral / Strategy | Eliminates fragile `if-else` branching in billing | Interfaces, Polymorphism, Records |
-| **`02-factory`** | Creational / Factory | Decouples notification dispatch from callers | Static Factories, Enums, `Optional<T>` |
-| **`03-observer`** | Behavioral / Observer | Thread-safe pub/sub broadcast for financial tickers | `CopyOnWriteArrayList`, Immutable Records |
-| **`04-circuit-breaker`**| Resilience / FSM | Prevents cascading gateway outages during downstream failure | `AtomicReference`, CAS, State Pattern |
-| **`05-thread-pools`** | Concurrency / Executor | Optimal throughput matching hardware constraints | Virtual Threads, `ForkJoinPool`, `ScheduledExecutor` |
+| Module | Design Pattern | Production Problem Solved | Core Java 21 Primitives | Key Guarantees |
+| :--- | :--- | :--- | :--- | :--- |
+| **`01-strategy`** | Behavioral / Strategy | Eliminates fragile `if-else` branching in billing | Interfaces, Polymorphism, Records | OCP compliance, immutable audit trail |
+| **`02-factory`** | Creational / Factory | Decouples notification dispatch from callers | Static Factories, Enums, `Optional<T>` | Encapsulated instantiation, zero direct coupling |
+| **`03-observer`** | Behavioral / Observer | Thread-safe pub/sub broadcast for financial tickers | `CopyOnWriteArrayList`, Immutable Records | Lock-free reads, real-time subscriber fanout |
+| **`04-circuit-breaker`**| Resilience / FSM | Prevents cascading gateway outages during downstream failure | `AtomicReference`, CAS, State Pattern | Sub-millisecond fail-fast, automated recovery probe |
+| **`05-thread-pools`** | Concurrency / Executor | Optimal throughput matching hardware constraints | Virtual Threads, `ForkJoinPool`, `ScheduledExecutor` | Workload-matched hardware saturation |
+
+---
+
+## Pattern Implementation Highlights & Code Snippets
+
+### 1. Strategy Pattern — Runtime Payment Engines
+```java
+PaymentContext ctx = new PaymentContext(creditCardStrategy, "ORD-001");
+ctx.executePayment(249.99);
+
+// Zero code change — dynamically swap payment provider at runtime
+ctx.setStrategy(paypalStrategy);
+ctx.executePayment(249.99);
+```
+
+### 2. Factory Pattern — Multi-Channel Notifications
+```java
+// Caller never couples to concrete service implementations
+NotificationServiceFactory.create(NotificationChannel.EMAIL)
+    .ifPresent(svc -> svc.send("user@example.com", "Order fulfilled successfully!"));
+```
+
+### 3. Observer Pattern — Stock Market Event Broadcasting
+```java
+StockMarket nasdaq = new StockMarket("NASDAQ");
+nasdaq.subscribe(new PortfolioTracker("Jayavignesh", positions));
+nasdaq.subscribe(new AlertEngine(5.0, 8.0));
+nasdaq.publishPriceUpdate("NVDA", 620.00, 680.00); // Trigger auto-alerts on threshold
+```
+
+### 4. Circuit Breaker Pattern — Finite State Machine
+```java
+CircuitBreaker<String> breaker = new CircuitBreaker<>(
+    new CircuitBreakerConfig.Builder("inventory-service")
+        .failureThreshold(3)
+        .openTimeoutMs(10_000)
+        .build());
+
+String result = fallback.executeWithFallback(breaker, () -> api.call(requestId));
+// Deterministic lifecycle: CLOSED -> OPEN -> HALF_OPEN -> CLOSED (auto-recovery)
+```
+
+### 5. Thread Pools — Workload-Matched Executor Selection
+```java
+// CPU-bound: ForkJoinPool matched to available CPU cores
+ExecutorService cpuPool = ExecutorFactory.create(TaskType.CPU_BOUND, "image-processing");
+
+// I/O-bound: Lightweight Virtual Threads (Java 21 Project Loom)
+ExecutorService ioPool = ExecutorFactory.create(TaskType.IO_BOUND, "database-fetch");
+
+// Scheduled: Dedicated background timer
+ScheduledExecutorService scheduler = ExecutorFactory.createScheduled("cron-reports", 2);
+```
 
 ---
 
@@ -109,28 +175,43 @@ Execute live standalone pattern demonstrations directly from the CLI:
 
 #### Strategy Pattern Demo
 ```bash
-mvn -pl 01-strategy exec:java -Dexec.mainClass=dev.jayav.patterns.strategy.StrategyDemo
+mvn -pl 01-strategy exec:java -Dexec.mainClass=dev.jayavignesh.patterns.strategy.StrategyDemo
 ```
 
 #### Factory Pattern Demo
 ```bash
-mvn -pl 02-factory exec:java -Dexec.mainClass=dev.jayav.patterns.factory.FactoryDemo
+mvn -pl 02-factory exec:java -Dexec.mainClass=dev.jayavignesh.patterns.factory.FactoryDemo
 ```
 
 #### Observer Pattern Demo
 ```bash
-mvn -pl 03-observer exec:java -Dexec.mainClass=dev.jayav.patterns.observer.ObserverDemo
+mvn -pl 03-observer exec:java -Dexec.mainClass=dev.jayavignesh.patterns.observer.ObserverDemo
 ```
 
 #### Circuit Breaker Pattern Demo
 ```bash
-mvn -pl 04-circuit-breaker exec:java -Dexec.mainClass=dev.jayav.patterns.circuitbreaker.CircuitBreakerDemo
+mvn -pl 04-circuit-breaker exec:java -Dexec.mainClass=dev.jayavignesh.patterns.circuitbreaker.CircuitBreakerDemo
 ```
 
 #### Thread Pools Concurrency Demo
 ```bash
-mvn -pl 05-thread-pools exec:java -Dexec.mainClass=dev.jayav.patterns.threadpool.ThreadPoolDemo
+mvn -pl 05-thread-pools exec:java -Dexec.mainClass=dev.jayavignesh.patterns.threadpool.ThreadPoolDemo
 ```
+
+---
+
+## Architecture Roadmap & Pattern Horizons
+
+The vault expands systematically across four architectural maturity tiers:
+
+- **Tier 1 — Core Creational & Behavioral Patterns (Completed):**
+  `Strategy` · `Factory` · `Observer` · `Circuit Breaker` · `Thread Pool Allocator`
+- **Tier 2 — Structural Patterns (Next Release):**
+  `Decorator` · `Command` · `Builder` · `Proxy` · `Singleton`
+- **Tier 3 — Concurrency & Synchronization Primitives:**
+  `Producer-Consumer` · `Read-Write Lock` · `Semaphore Guard` · `CompletableFuture Chain`
+- **Tier 4 — Distributed Architectural Patterns:**
+  `Event Sourcing` · `CQRS` · `Choreographed Saga` · `Bulkhead Isolation`
 
 ---
 
@@ -140,11 +221,11 @@ The repository isolates dependencies and execution scopes across Maven sub-modul
 
 | Module Directory | Artifact ID | Primary Execution Class | Scope |
 | :--- | :--- | :--- | :--- |
-| **`01-strategy`** | `pattern-strategy` | `dev.jayav.patterns.strategy.StrategyDemo` | Payment engine swapping & audit trail |
-| **`02-factory`** | `pattern-factory` | `dev.jayav.patterns.factory.FactoryDemo` | Multi-channel notification delivery |
-| **`03-observer`** | `pattern-observer` | `dev.jayav.patterns.observer.ObserverDemo` | Stock market ticker broadcast |
-| **`04-circuit-breaker`**| `pattern-circuit-breaker` | `dev.jayav.patterns.circuitbreaker.CircuitBreakerDemo`| Microservice fault isolation FSM |
-| **`05-thread-pools`** | `pattern-thread-pools` | `dev.jayav.patterns.threadpool.ThreadPoolDemo` | Virtual Threads vs ForkJoinPool benchmarking |
+| **`01-strategy`** | `pattern-strategy` | `dev.jayavignesh.patterns.strategy.StrategyDemo` | Payment engine swapping & audit trail |
+| **`02-factory`** | `pattern-factory` | `dev.jayavignesh.patterns.factory.FactoryDemo` | Multi-channel notification delivery |
+| **`03-observer`** | `pattern-observer` | `dev.jayavignesh.patterns.observer.ObserverDemo` | Stock market ticker broadcast |
+| **`04-circuit-breaker`**| `pattern-circuit-breaker` | `dev.jayavignesh.patterns.circuitbreaker.CircuitBreakerDemo`| Microservice fault isolation FSM |
+| **`05-thread-pools`** | `pattern-thread-pools` | `dev.jayavignesh.patterns.threadpool.ThreadPoolDemo` | Virtual Threads vs ForkJoinPool benchmarking |
 
 ---
 
